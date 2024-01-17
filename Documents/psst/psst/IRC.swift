@@ -18,6 +18,7 @@ let cheese = [Channel(id: "Poop")]
         self.mode = mode
         self.realname = realname
         self.away = away
+        self.channelPrivs = []
     }
     
     func goAway(){
@@ -66,7 +67,7 @@ enum Mode{
 }
 
 protocol IRC_Client{
-    func message(_ command: Command)
+    func message(_ command: Command, user: User)
 }
 
 struct Client: IRC_Client{
@@ -86,15 +87,18 @@ struct Client: IRC_Client{
                 print(channel)
             }
             print(partMessage!)
-        case .topic(let channel, let topic?):
-            if user.channelPrivs.contains(channel){
-                if getChannel(id: channel) != nil {
-                    let topicChannel = getChannel(id: channel)
-                    if topic != nil{
-                        topicChannel.setTopic(topic: topic)
-                    }
-                }
-            }
+        case .topic(let channel, let topic):
+            print(channel + topic!)
+            //            if user.channelPrivs.contains(channel){
+            //                if getChannel(id: channel) != nil {
+            //                    let topicChannel = getChannel(id: channel)
+            //                    if topic != nil{
+            //                        topicChannel.setTopic(topic: topic)
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    }
         }
     }
 }

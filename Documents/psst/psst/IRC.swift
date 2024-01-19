@@ -29,12 +29,16 @@ struct Message {
 func parseMsg(s: String) -> Message{
     /*
      takes a String from an IRC server and returns a Message
+        Each IRC message may consist of up to three main parts: the prefix
+        (optional), the command, and the command parameters (of which there
+        may be up to 15).  The prefix, command, and all parameters are
+        separated by one (or more) ASCII space character(s) (0x20).
      */
     var buffer = s
     var prefix = ""
     var trailing: [String] = []
-    var args: [String]
-    var command: String
+    var args: [String] = []
+    var command: String = ""
     if buffer == ""{
         print("Empty Message") // TODO: error handling
     }
@@ -48,13 +52,13 @@ func parseMsg(s: String) -> Message{
             var split = buffer.split(separator: " :", maxSplits: 1).map {String($0)}
             buffer = split[0]
             trailing.append(split[1])
-            var args = buffer.split(separator: " ").map {String($0)}
+            args = buffer.split(separator: " ").map {String($0)}
             args.append(contentsOf: trailing)
         }
     }
     else {
-        var args = buffer.split(separator: " ").map {String($0)}
-        var command = args.removeFirst()
+        args = buffer.split(separator: " ").map {String($0)}
+        command = args.removeFirst()
     }
     return Message(prefix: prefix, command: command, args: args)
 }

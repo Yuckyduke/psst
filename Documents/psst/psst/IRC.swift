@@ -20,11 +20,13 @@
 
 import Foundation
 let cheese = [Channel(id: "Poop")]
+/*
 struct Message {
     let prefix: String
     let command: String
     let args: [String]
 }
+ */
 
 func parseMsg(s: String) -> Message{
     /*

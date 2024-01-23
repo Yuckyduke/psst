@@ -78,7 +78,6 @@ extension Message {
     middle + [trailing]
   }
   
-  
   static let params: Parser<[Substring]> = .oneOf(
     middleAndTrailing,
     onlyMiddleParameters,

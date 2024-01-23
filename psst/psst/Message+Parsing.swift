@@ -265,7 +265,7 @@ let testMessages = [
 
 let clock = ContinuousClock()
 // forcing stuff to initialize before testing parsing speed
-print(message.run("Hello world!!!").match ?? "")
+//print(message.run("Hello world!!!").match ?? "")
 // ~.0001 seconds to parse
 let result = clock.measure {
   testMessages.forEach { testMessage in
@@ -273,5 +273,5 @@ let result = clock.measure {
   }
 }
 
-print(result)
+//print(result)
 

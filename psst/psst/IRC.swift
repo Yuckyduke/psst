@@ -62,7 +62,7 @@ func parseMsg(s: String) -> Message{
         args = buffer.split(separator: " ").map {String($0)}
         command = args.removeFirst()
     }
-    return Message(prefix: prefix, command: command, args: args)
+  return Message(prefix: prefix[...], command: command[...], args: args.map({ $0[...] }))
 }
 struct User {
     var username: String

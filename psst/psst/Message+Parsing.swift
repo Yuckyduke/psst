@@ -7,6 +7,7 @@ struct Message: Equatable {
   let args: [Substring]?
 }
 
+// TODO: Support CR terminated lines (currently only support LF)
 extension Message {
   // NUL, CR, LF, colon (`:`) and SPACE
   static let spcrlfcl = Set<Character>(["\0", "\r", "\n", ":", " "])

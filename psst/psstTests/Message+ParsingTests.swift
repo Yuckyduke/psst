@@ -75,7 +75,6 @@ final class psstTests: XCTestCase {
   }
   
   func testPerformanceExample() throws {
-    self.measure {
-    }
+    self.measure {}
   }
 }

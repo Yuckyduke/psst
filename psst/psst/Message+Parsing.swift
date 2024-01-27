@@ -60,15 +60,17 @@ extension Message {
     }()
     
     static let trailingParameterWithColon: Parser<Substring> = {
-        let zipped = zip(":",
-                         Parser<Substring>.matchingAllCharacters(
-                            notIn: spcrlfcl.subtracting([":", " "])
-                         ), "\n"
+        let zipped = zip(
+            ":",
+            Parser<Substring>.matchingAllCharacters(
+                notIn: spcrlfcl.subtracting([":", " "])
+            ), "\n"
         )
         return zipped.flatMap({ _, pfx, _ in
             pfx.isEmpty ? .never : .always(pfx)
         })
     }()
+    
     static let trailingParameter: Parser<Substring> = .oneOf(colon, trailingParameterWithColon)
     
     static let middleParameter: Parser<Substring> = zip(

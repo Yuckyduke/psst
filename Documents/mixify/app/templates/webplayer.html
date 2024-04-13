@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html></html>
+
+<head>
+  <title> Mixify</title>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/styles.css') }}">
+</head>
+
+<body>
+  <h1 style="font-family: monospace, monaco;">Mixify</h1>
+    <div class = "musicPlayer"> 
+    <img class = "songArt" id="songArt"> </img>
+    <h2 class="songName" id="songName"> Hello</h2>
+    <div class="btn-group button">
+      <button id="lastSong">Last Song</button>
+      <button id="togglePlay">Play/Pause</button>
+      <button id="nextSong">Next Song</button>
+    </div>
+    <div class="slider-container">
+      <div id="current-time" class="current-time">0:00</div>
+      <input type="range" min="1" max="100" value="0" class="slider-container slider" id="songSeek" onchange="seekTo()">
+      <div id="total-duration" class="  total-duration">00:00</div>
+    </div>
+    </div>
+
+  </div>
+  <script>
+    var player;
+    var trackPosition;
+    var IsPaused;
+    var trackDuration;
+    function updateSeek() {
+    }
+    function seekTo() {
+
+    } 
+  </script>
+
+  </div>
+  <div>
+    <select id="playlistDropdown" class="dropdown">
+    </select>
+    <script>
+      const playlists = {{ data| tojson}}
+      const playlistDropdown = document.getElementById("playlistDropdown");
+      for (var key in playlists) {
+        let option = document.createElement("option");
+        option.text = key;
+        console.log(key);
+        playlistDropdown.add(option);
+      }
+    </script>
+    <script>
+      document.getElementById("playlistDropdown").addEventListener("change", updatePlaylist);
+
+      function updatePlaylist() {
+        const currentPlaylist = { "playlist": playlists[document.getElementById("playlistDropdown").value] };
+        fetch('/process_data', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(currentPlaylist)
+        })
+          .then(response => response.json())
+          .then(result => {
+
+            let playlistDict = result;
+            const table = document.getElementById('Playlist');
+            const rowCount = table.rows.length;
+
+            // Start from the bottom to avoid index issues as rows are removed
+            for (let i = rowCount - 1; i > 0; i--) {
+              table.deleteRow(i);
+            }
+
+
+
+            // Create rows and cells for the data
+            result.tracks.forEach(item => {
+              const row = document.getElementById("Playlist").insertRow();
+              let cell = row.insertCell();
+              cell.textContent = item["row"];
+              cell = row.insertCell();
+              cell.textContent = item["name"];
+              cell = row.insertCell();
+              cell.textContent = item["artists"];
+              cell = row.insertCell();
+              cell.textContent = item["id"];
+              cell = row.insertCell();
+              cell.textContent = item["duration"];
+              for (let i = 0; i < 2; i++) {
+                if (i == 0){
+                  playlistDict["start"] = 0
+                }
+                else{
+                  playlistDict["stop"] = 0;
+                }
+                const cell = row.insertCell();
+                cell.textContent = 0;
+                cell.setAttribute('contenteditable', 'true');
+              }
+            });
+
+            // Append the table to the body of the document
+            document.body.appendChild(table);
+          })
+
+
+      }
+    </script>
+
+  </div>
+  <script>
+    // TODO fix add artist - figure out what's going on with the URI
+    function highlightTrack(song, artist) {
+      table = document.getElementById("Playlist");
+      tr = table.getElementsByTagName("tr");
+
+      for (i = 0; i < tr.length; i++) {
+        songName = tr[i].getElementsByTagName("td")[1]
+        artistName = tr[i].getElementsByTagName("td")[2]
+        if (songName && artistName) {
+          songTxtValue = songName.textContent || songName.innerText;
+          artistTxtValue = artistName.textContent || artistName.textContent
+          if (songTxtValue == song && artistTxtValue == artist) {
+            tr[i].style.backgroundColor = "orange";
+          } else {
+            tr[i].style.backgroundColor = ""
+          }
+        }
+      }
+    }
+
+    // function newSongStart(songURI) {
+    //   player.seek(playlistDict['Song'
+
+
+    // }
+
+  </script>
+  <script src="https://sdk.scdn.co/spotify-player.js"></script>
+  <script>
+    let secondCounter;
+    window.onSpotifyWebPlaybackSDKReady = () => {
+      const token = {{ access_token| tojson}};
+      player = new Spotify.Player({
+      name: 'Mixofy',
+      getOAuthToken: cb => { cb(token); },
+      volume: 1.0
+    });
+
+    // Ready
+    player.addListener('ready', ({ device_id }) => {
+      console.log('Ready with Device ID', device_id);
+    });
+
+    // Not Ready
+    player.addListener('not_ready', ({ device_id }) => {
+      console.log('Device ID has gone offline', device_id);
+    });
+
+    player.addListener('initialization_error', ({ message }) => {
+      console.error(message);
+    });
+
+    player.addListener('authentication_error', ({ message }) => {
+      console.error(message);
+    });
+
+    player.addListener('account_error', ({ message }) => {
+      console.error(message);
+    });
+//TODO Add seek to here 
+    document.getElementById('nextSong').onclick = function () {
+      player.nextTrack();
+    };
+    document.getElementById('togglePlay').onclick = function () {
+      player.togglePlay();
+      IsPaused ? IsPaused = false : IsPaused = true;
+      if (IsPaused){
+        IsPaused = false;
+        clearInterval(secondCounter);
+
+      } else {
+        IsPaused = true;
+        secondCounter = setInterval(addASecond, 1000);
+      }
+    };
+    document.getElementById('lastSong').onclick = function () {
+      player.previousTrack();
+    };
+    document.getElementById("songSeek").oninput = function () {
+      value = document.getElementById("songSeek").value;
+      player.seek((value/100) * trackDuration);
+    }
+    player.addListener('player_state_changed', ({
+      position,
+      duration,
+      paused,
+      track_window: { current_track }
+    }) => {
+      IsPaused = paused; 
+      trackPosition = position;
+      trackDuration = duration;
+      document.getElementById("songName").textContent = current_track.name;
+      document.getElementById("songArt").src = current_track.album.images[0].url;
+      document.getElementById("total-duration").textContent = timeConverter(duration);
+      document.getElementById("current-time").textContent = timeConverter(trackPosition);
+      let currentTrack = current_track;
+      let currentTrackURI = current_track.uri;
+      highlightTrack(current_track.name, current_track.artists[0]["name"]);
+      console.log(current_track.name + current_track.artists[0]["name"]);
+    });
+
+    player.connect();
+  }
+  </script>
+  <script>
+
+    function updateSeek(msTime) {
+      return (trackPosition/songDuration) * 100
+    }
+
+    function timeConverter(msTime){
+      seconds = Math.floor((msTime % 60000)/1000)
+      minutes = Math.floor(msTime/60000)
+      if (seconds < 10){
+        return minutes.toString() + ":0" + seconds.toString()}
+      else{
+      return minutes.toString() + ":" + seconds.toString()}
+    }
+    function addASecond(){
+      trackPosition = trackPosition + 1000
+      document.getElementById("current-time").textContent = !isNaN(trackPosition) ? timeConverter(trackPosition) : "00:00";
+      document.getElementById("songSeek").value = (trackPosition/trackDuration) * 100
+      console.log(trackPosition);
+    }
+  </script>
+    <div class="btn-group button">
+    <button id="Save"> Save </button>
+    <button id="Play Playlist"> Play Playlist </button>
+    </div>
+    <table id="Playlist" class = "darkTable">
+      <tr>
+        <td>Row</td>
+        <td>Name</td>
+        <td>Artist </td>
+        <td>URI</td>
+        <td>Duration</td>
+        <td>start</td>
+        <td>stop</td>
+      </tr>
+    </table>
+  <script>
+    document.getElementById("Save").onclick = function () {
+      dict = {}
+      table = document.getElementById("Playlist");
+      tr = table.getElementsByTagName("tr");
+      for (i = 0; i < tr.length; i++) {
+        td = tr[i].getElementsByTagName("td");
+        if (td) {
+          dict[td[2].innerText] = [td[1].innerText, td[4].innerText, td[5].innerText];
+
+        }
+      }
+      console.log(dict);
+    }
+  </script>
+</body>
+
+</html>
